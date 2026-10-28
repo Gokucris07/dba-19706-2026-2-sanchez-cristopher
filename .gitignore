@@ -1,0 +1,22 @@
+# Secretos: nunca al repositorio
+.env
+*.key
+*.pem
+*.p12
+*.pfx
+.pgpass
+pgpass.conf
+
+# Certificados generados localmente (cada quien genera los suyos)
+entorno/tls/*.crt
+entorno/tls/*.csr
+entorno/tls/*.srl
+
+# Archivos de demostración que no forman parte de la entrega
+**/sql/ejemplo-mala-practica.sql
+
+# Respaldos (pueden contener datos personales)
+*.dump
+*.backup
+*.sql.gz
+.vscode/

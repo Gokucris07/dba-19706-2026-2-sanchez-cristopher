@@ -1,0 +1,84 @@
+# ---------------------------------------------------------------------------
+# Entorno de la materia: PostgreSQL 16 con TLS obligatorio para conexiones
+# de red.
+#
+# Antes del primer arranque:
+#   1. cp .env.example .env   y cambia los valores
+#   2. generar certificados:  sh tls/generar-certificados.sh
+#      (o con Docker, ver el encabezado de tls/generar-certificados.sh)
+#   3. docker compose up -d
+# ---------------------------------------------------------------------------
+services:
+  postgres:
+    image: postgres:16
+    container_name: lab-postgres
+    env_file: .env
+    environment:
+      TZ: America/Mazatlan
+      PGTZ: America/Mazatlan
+    ports:
+      - "5432:5432"
+    networks:
+      lab:
+        aliases:
+          - db.lab02.local          # nombre incluido en el certificado del servidor
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./tls:/tls-origen:ro
+      - ./pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
+      - ../unidad-02:/unidad-02:ro  # scripts de los laboratorios
+    # PostgreSQL exige que server.key pertenezca al usuario postgres y tenga
+    # permisos 600. En Windows los archivos montados no conservan permisos, por
+    # eso se copian dentro del contenedor antes de arrancar el servidor.
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        set -e
+        for f in server.crt server.key ca.crt; do
+          test -f "/tls-origen/$$f" || { echo "Falta tls/$$f: ejecuta tls/generar-certificados.sh"; exit 1; }
+          cp "/tls-origen/$$f" "/var/lib/postgresql/$$f"
+        done
+        chown postgres:postgres /var/lib/postgresql/server.* /var/lib/postgresql/ca.crt
+        chmod 600 /var/lib/postgresql/server.key
+        exec docker-entrypoint.sh "$$@"
+      - --
+    command:
+      - postgres
+      - -c
+      - ssl=on
+      - -c
+      - ssl_cert_file=/var/lib/postgresql/server.crt
+      - -c
+      - ssl_key_file=/var/lib/postgresql/server.key
+      - -c
+      - ssl_ca_file=/var/lib/postgresql/ca.crt
+      - -c
+      - ssl_min_protocol_version=TLSv1.2
+      - -c
+      - password_encryption=scram-sha-256
+      - -c
+      - hba_file=/etc/postgresql/pg_hba.conf
+      - -c
+      - listen_addresses=*
+
+  # Cliente psql en un contenedor aparte: se conecta POR RED, como lo haría una
+  # aplicación. No hace falta instalar PostgreSQL en Windows.
+  #   docker compose run --rm cliente "host=db.lab02.local dbname=lab01 user=app_lab02 sslmode=verify-full sslrootcert=/tls/ca.crt"
+  cliente:
+    image: postgres:16
+    profiles: ["cliente"]
+    networks: [lab]
+    environment:
+      PGPASSWORD: ${LAB02_APP_PASSWORD}
+    volumes:
+      - ./tls/ca.crt:/tls/ca.crt:ro
+      - ../unidad-02:/unidad-02:ro
+    entrypoint: ["psql"]
+    depends_on: [postgres]
+
+networks:
+  lab:
+
+volumes:
+  pgdata:
