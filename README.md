@@ -9,6 +9,14 @@
 
 Repositorio personal de prácticas de la materia.
 
+## Laboratorios
+
+| Laboratorio | Tema | Carpeta |
+|---|---|---|
+| LAB-01 | Protección y privacidad de datos | [`unidad-02/lab-01-proteccion-privacidad`](unidad-02/lab-01-proteccion-privacidad) |
+| LAB-02 | Cifrado, credenciales y comunicaciones seguras | [`unidad-02/lab-02-cifrado-credenciales`](unidad-02/lab-02-cifrado-credenciales) |
+| LAB-03 | Privacidad, cumplimiento y gobierno de los datos | [`unidad-02/lab-03-privacidad-cumplimiento`](unidad-02/lab-03-privacidad-cumplimiento) |
+
 ## Contenido
 
 ```
@@ -21,7 +29,9 @@ Repositorio personal de prácticas de la materia.
 │   ├── pg_hba.conf                    ← solo conexiones hostssl + scram-sha-256
 │   └── tls/generar-certificados.sh    ← crea CA y certificado del servidor de laboratorio
 └── unidad-02/
-    └── lab-02-cifrado-credenciales/   ← LAB-02
+    ├── lab-01-proteccion-privacidad/  ← LAB-01
+    ├── lab-02-cifrado-credenciales/   ← LAB-02
+    └── lab-03-privacidad-cumplimiento/ ← LAB-03
 ```
 
 ## Preparar el entorno
